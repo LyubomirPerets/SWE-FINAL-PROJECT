@@ -1,0 +1,1 @@
+CREATE DATABASE crm_test;
