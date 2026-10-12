@@ -69,7 +69,7 @@ Seed accounts, all with password `Password123!`:
 - **`main`** is the release branch. It only changes when `dev` is merged into it at the end of a sprint.
 - **Nobody pushes directly to `dev` or `main`.** GitHub rejects it. Every change goes through a pull request from your own branch.
 
-### The daily loop
+### Working
 
 ```bash
 # 1. Start from the latest dev
