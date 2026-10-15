@@ -6,11 +6,11 @@ Express + TypeScript + PostgreSQL API for the unified CRM / communications platf
 
 ## Team & ownership
 
-| Role      | People | Owns                                                         |
-| --------- | ------ | ------------------------------------------------------------ |
-| Backend   | 2      | `src/modules/`, `src/middleware/`, `src/app.ts`, `tests/`    |
-| Database  | 1      | `src/db/migrations/`, `src/db/seed.ts`, the schema / ERD     |
-| Front-end | 2      | `frontend/` (not created yet), everything that calls the API |
+| Role      | People | Owns                                                      |
+| --------- | ------ | --------------------------------------------------------- |
+| Backend   | 2      | `src/modules/`, `src/middleware/`, `src/app.ts`, `tests/` |
+| Database  | 1      | `src/db/migrations/`, `src/db/seed.ts`, the schema / ERD  |
+| Front-end | 2      | `frontend/`, everything that calls the API                |
 
 Anyone can open a pull request that touches any area. If you change something another role owns, tag that person on the pull request.
 
@@ -182,24 +182,18 @@ Other rules:
 
 ### Front-end
 
-The front-end will live in a `frontend/` folder in this repo. It hasn't been created yet.
+The front-end lives in [`frontend/`](frontend/) (React + Vite + TypeScript). It has its own `package.json`, so run `npm install` inside `frontend/` too. See [`frontend/README.md`](frontend/README.md).
 
 - **Run the backend locally** using [First-time setup](#first-time-setup). The API runs at `http://localhost:3000`.
 - **Auth uses cookie sessions, not tokens.** After a login or signup request, the browser stores a session cookie. Every request must send it:
   ```js
   fetch('/api/auth/me', { credentials: 'include' });
   ```
-- **The backend has no CORS setup.** In development, proxy `/api` to the backend from your dev server instead of calling `http://localhost:3000` directly. The browser then sees one origin, and cookies just work. With Vite:
-  ```js
-  // vite.config.js
-  export default {
-    server: { proxy: { '/api': 'http://localhost:3000' } },
-  };
-  ```
+- **The backend has no CORS setup.** Call relative URLs like `/api/...`, never `http://localhost:3000` directly. `frontend/vite.config.ts` already proxies `/api` to the backend, so the browser sees one origin and cookies just work.
 - **See the [Auth API](#auth-api)** for endpoints, and log in with the seed accounts.
 - **Error responses** are always JSON with an `error` field. Validation errors also include `details` with messages per field, which is useful for showing errors on forms.
 
-> **When `frontend/` is added:** the root `npm run lint`, `npm run format:check`, and CI currently scan the whole repo. The front-end will need its own lint/format config, or the root configs will need to ignore `frontend/`. Sort this out in the first front-end pull request.
+> **Lint and CI for `frontend/`:** the root `npm run lint` and `npm run format:check` (and so CI) also scan `frontend/`, using the root configs. Run them from the repo root before pushing front-end changes. CI does not typecheck or build the front-end yet. Run `npm run build` inside `frontend/` yourself to catch type errors.
 
 ## Reference
 
