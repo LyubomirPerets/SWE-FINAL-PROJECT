@@ -6,6 +6,17 @@ import { closePool, pool } from '../src/db/pool.js';
 const app = createApp();
 const valid = { email: 'jane@example.com', password: 'supersecret1', name: 'Jane Doe' };
 
+function cookies(header: string | string[] | undefined): string[] {
+  if (!header) return [];
+  return Array.isArray(header) ? header : [header];
+}
+
+function sessionId(header: string | string[] | undefined): string | undefined {
+  return cookies(header)
+    .find((c) => c.startsWith('connect.sid='))
+    ?.split(';')[0];
+}
+
 beforeEach(async () => {
   await pool.query('TRUNCATE users, "session" RESTART IDENTITY CASCADE');
 });
@@ -108,6 +119,20 @@ describe('POST /api/auth/login', () => {
     const res = await request(app).post('/api/auth/login').send({});
     expect(res.status).toBe(400);
   });
+
+  it('starts a new session ID on login (no session fixation)', async () => {
+    const agent = request.agent(app);
+    const first = await agent
+      .post('/api/auth/login')
+      .send({ email: valid.email, password: valid.password });
+    const second = await agent
+      .post('/api/auth/login')
+      .send({ email: valid.email, password: valid.password });
+    expect(sessionId(first.headers['set-cookie'])).toBeDefined();
+    expect(sessionId(second.headers['set-cookie'])).not.toBe(
+      sessionId(first.headers['set-cookie']),
+    );
+  });
 });
 
 describe('session management', () => {
@@ -126,10 +151,42 @@ describe('session management', () => {
     expect((await agent.get('/api/auth/me')).status).toBe(401);
   });
 
+  it('logout without a session still returns 204', async () => {
+    const res = await request(app).post('/api/auth/logout');
+    expect(res.status).toBe(204);
+  });
+
+  it('sets the session cookie as HttpOnly and SameSite=Lax', async () => {
+    const res = await request(app).post('/api/auth/signup').send(valid);
+    const cookie = cookies(res.headers['set-cookie']).find((c) => c.startsWith('connect.sid='));
+    expect(cookie).toMatch(/HttpOnly/i);
+    expect(cookie).toMatch(/SameSite=Lax/i);
+  });
+
   it('persists the session in Postgres', async () => {
     await request.agent(app).post('/api/auth/signup').send(valid);
     const { rows } = await pool.query('SELECT count(*)::int AS n FROM "session"');
     expect(rows[0].n).toBe(1);
+  });
+});
+
+describe('malformed requests', () => {
+  it('returns 400 JSON (not 500) for invalid JSON', async () => {
+    const res = await request(app)
+      .post('/api/auth/login')
+      .set('Content-Type', 'application/json')
+      .send('{"email":');
+    expect(res.status).toBe(400);
+    expect(res.body.error).toBeDefined();
+  });
+
+  it('returns 413 JSON (not 500) for a body over the size limit', async () => {
+    const res = await request(app)
+      .post('/api/auth/login')
+      .set('Content-Type', 'application/json')
+      .send(JSON.stringify({ email: valid.email, password: 'x'.repeat(200_000) }));
+    expect(res.status).toBe(413);
+    expect(res.body.error).toBeDefined();
   });
 });
 

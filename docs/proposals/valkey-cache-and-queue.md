@@ -15,14 +15,14 @@ Add [Valkey](https://valkey.io/) (BSD-licensed, Linux Foundation fork of Redis 7
 
 ## Why we need it (mapped to the PRD)
 
-| PRD feature | Valkey role |
-|---|---|
-| Auto-transcribe and log calls/meetings | **Job queue (BullMQ).** Upload a recording, queue a job, and a worker transcribes, summarizes with AI and writes the record to Postgres. Too slow to run inside an HTTP request. |
-| Calendar and Gmail/Outlook sync | **Repeatable jobs** for polling and webhook processing, plus **rate limiting** of outbound calls to stay under provider API quotas. |
-| Email workflows, templates, A/B testing | **Delayed and scheduled jobs** (e.g. "send variant B in 3 days if no reply"), with retries. |
-| Customer context before the agent answers | **Cache** the assembled context (contact, recent activity, last AI summary) so the screen loads fast. |
-| Manager live activity view | **Pub/sub**, pushing events to the frontend via WebSocket/SSE across multiple backend instances. |
-| Follow-up reminders | Delayed jobs. |
+| PRD feature                               | Valkey role                                                                                                                                                                      |
+| ----------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Auto-transcribe and log calls/meetings    | **Job queue (BullMQ).** Upload a recording, queue a job, and a worker transcribes, summarizes with AI and writes the record to Postgres. Too slow to run inside an HTTP request. |
+| Calendar and Gmail/Outlook sync           | **Repeatable jobs** for polling and webhook processing, plus **rate limiting** of outbound calls to stay under provider API quotas.                                              |
+| Email workflows, templates, A/B testing   | **Delayed and scheduled jobs** (e.g. "send variant B in 3 days if no reply"), with retries.                                                                                      |
+| Customer context before the agent answers | **Cache** the assembled context (contact, recent activity, last AI summary) so the screen loads fast.                                                                            |
+| Manager live activity view                | **Pub/sub**, pushing events to the frontend via WebSocket/SSE across multiple backend instances.                                                                                 |
+| Follow-up reminders                       | Delayed jobs.                                                                                                                                                                    |
 
 The job queue is the main reason. Caching and pub/sub are useful extras.
 
