@@ -2,8 +2,6 @@
 
 Express + TypeScript + PostgreSQL API for the unified CRM / communications platform.
 
-**New to the team? Read [First-time setup](#first-time-setup) and [How we work](#how-we-work-git-workflow) before writing any code.** Then read the guide for your role.
-
 ## Team & ownership
 
 | Role      | People | Owns                                                      |
