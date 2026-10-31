@@ -478,7 +478,7 @@
           <a href="#solutions">Solutions</a><a href="#pricing">Pricing</a><a href="#help">Help</a
           ><a href="#contact">Contact</a>
         </nav>
-        <a class="btn btn-violet" href="#signup">Get Started</a>
+        <a class="btn btn-violet" href="signup.html">Get Started</a>
         <button class="menu" id="menu" aria-label="Toggle menu" aria-expanded="false">
           <svg
             width="22"
@@ -501,10 +501,16 @@
           Accelerate your business with our solutions. Harness cutting-edge technology, and a team
           to drive growth.
         </p>
-        <div class="signup">
-          <input type="email" placeholder="Email" aria-label="Email address" />
-          <button class="btn btn-white">Try for free</button>
-        </div>
+        <form class="signup" action="signup.html" method="get">
+          <input
+            type="email"
+            name="email"
+            placeholder="Email"
+            aria-label="Email address"
+            required
+          />
+          <button type="submit" class="btn btn-white">Try for free</button>
+        </form>
       </section>
 
       <div
