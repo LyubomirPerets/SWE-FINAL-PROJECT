@@ -1,29 +1,38 @@
+import { BrowserRouter, Link, Route, Routes } from 'react-router';
+import { AuthProvider } from './auth/AuthProvider';
+import { AuthShell } from './components/AuthShell';
+import { RequireAuth } from './components/RequireAuth';
+import { AuthPage } from './pages/AuthPage';
+import { DashboardPage } from './pages/DashboardPage';
+import LandingPage from './pages/LandingPage';
+import './App.css';
+
 function App() {
   return (
-    <div>
-      <header>
-        <h1>CRM Dashboard</h1>
-        <nav>
-          <button>Dashboard</button>
-          <button>Customers</button>
-          <button>Interactions</button>
-        </nav>
-      </header>
-
-      <main>
-        <h2>Welcome to the CRM</h2>
-
-        <div>
-          <h3>Customers</h3>
-          <p>Customer information will appear here.</p>
-        </div>
-
-        <div>
-          <h3>Recent Interactions</h3>
-          <p>Recent customer interactions will appear here.</p>
-        </div>
-      </main>
-    </div>
+    <BrowserRouter>
+      <AuthProvider>
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/login" element={<AuthPage key="login" mode="login" />} />
+          <Route path="/signup" element={<AuthPage key="signup" mode="signup" />} />
+          <Route element={<RequireAuth />}>
+            <Route path="/dashboard" element={<DashboardPage />} />
+          </Route>
+          <Route
+            path="*"
+            element={
+              <AuthShell title="Page not found">
+                <title>Page not found | Sierra</title>
+                <p>This page doesn’t exist.</p>
+                <Link className="auth-button" to="/">
+                  Return home
+                </Link>
+              </AuthShell>
+            }
+          />
+        </Routes>
+      </AuthProvider>
+    </BrowserRouter>
   );
 }
 
