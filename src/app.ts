@@ -7,6 +7,7 @@ import { pool } from './db/pool.js';
 import { errorHandler, notFound } from './middleware/error.js';
 import { authRouter } from './modules/users/user.routes.js';
 import { customersRouter } from './modules/customers/customers.routes.js';
+import { jobsRouter } from './modules/jobs/jobs.routes.js';
 
 const PgStore = connectPgSimple(session);
 
@@ -38,7 +39,7 @@ export function createApp(): express.Express {
 
   app.use('/api/auth', authRouter);
   app.use('/api/customers', customersRouter);
-  // Future sprints: app.use('/api/customers', ...), app.use('/api/interactions', ...)
+  app.use('/api/jobs', jobsRouter);
 
   app.use(notFound);
   app.use(errorHandler);
