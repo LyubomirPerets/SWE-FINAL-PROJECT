@@ -1,7 +1,9 @@
 import { useRef, useState } from 'react';
-import { useNavigate } from 'react-router';
+import { Link, useNavigate } from 'react-router';
 import { AuthShell } from '../components/AuthShell';
 import { useAuth } from '../hooks/useAuth';
+
+const ROLE_LABELS = { manager: 'Manager', associate: 'Associate', technician: 'Technician' };
 
 export function DashboardPage() {
   const auth = useAuth();
@@ -38,9 +40,12 @@ export function DashboardPage() {
         </div>
         <div>
           <dt>Role</dt>
-          <dd>{auth.user.role === 'manager' ? 'Manager' : 'Associate'}</dd>
+          <dd>{ROLE_LABELS[auth.user.role]}</dd>
         </div>
       </dl>
+      <Link className="auth-button dashboard-link" to="/customers">
+        View customers
+      </Link>
       {error && (
         <p className="auth-error" role="alert">
           {error}
