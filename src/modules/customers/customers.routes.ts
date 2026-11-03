@@ -1,60 +1,85 @@
-import { Router } from 'express';
-import { requireAuth } from '../../middleware/auth.js';
+import { Router, type NextFunction, type Request, type Response } from 'express';
+import { requireAuth, requireRole } from '../../middleware/auth.js';
 import {
+  CONTACT_METHOD_MESSAGE,
   createCustomerSchema,
-  updateCustomerSchema,
   customerParamsSchema,
+  updateCustomerSchema,
 } from './customers.schema.js';
+import {
+  MissingContactMethodError,
+  createCustomer,
+  deleteCustomer,
+  getCustomer,
+  listCustomers,
+  updateCustomer,
+} from './customers.service.js';
+
+type Handler = (req: Request, res: Response) => Promise<void>;
+const wrap = (fn: Handler) => (req: Request, res: Response, next: NextFunction) => {
+  fn(req, res).catch(next);
+};
+
+const notFound = (res: Response) => res.status(404).json({ error: 'Customer not found' });
 
 export const customersRouter = Router();
 
-//protect routes
+// Everyone signed in can read customers; technicians can't create, edit, or delete them.
 customersRouter.use(requireAuth);
+const officeOnly = requireRole('associate', 'manager');
 
-//list customers
-customersRouter.get('/', (_req, res) => {
-  res.json({ customers: [] });
-});
+customersRouter.get(
+  '/',
+  wrap(async (_req, res) => {
+    res.json({ customers: await listCustomers() });
+  }),
+);
 
-//retrieve customer
-customersRouter.get('/:id', (req, res, next) => {
-  try {
+customersRouter.get(
+  '/:id',
+  wrap(async (req, res) => {
     const { id } = customerParamsSchema.parse(req.params);
-    res.status(501).json({ message: 'Pending database migration', id });
-  } catch (err) {
-    next(err);
-  }
-});
+    const customer = await getCustomer(id);
+    if (!customer) return void notFound(res);
+    res.json({ customer });
+  }),
+);
 
-//new customer
-customersRouter.post('/', (req, res, next) => {
-  try {
+customersRouter.post(
+  '/',
+  officeOnly,
+  wrap(async (req, res) => {
     const data = createCustomerSchema.parse(req.body);
-    res.status(201).json({
-      message: 'Customer validation passed (scaffold)',
-      customer: { id: '00000000-0000-0000-0000-000000000000', ...data },
-    });
-  } catch (err) {
-    next(err);
-  }
-});
+    const customer = await createCustomer(data, req.session.userId!);
+    res.status(201).json({ customer });
+  }),
+);
 
-//update customer
-customersRouter.patch('/:id', (req, res, next) => {
-  try {
+customersRouter.patch(
+  '/:id',
+  officeOnly,
+  wrap(async (req, res) => {
     const { id } = customerParamsSchema.parse(req.params);
     const data = updateCustomerSchema.parse(req.body);
-    res.status(501).json({ message: 'Pending database migration', id, data });
-  } catch (err) {
-    next(err);
-  }
-});
-//delete a customer
-customersRouter.delete('/:id', (req, res, next) => {
-  try {
+    try {
+      const customer = await updateCustomer(id, data);
+      if (!customer) return void notFound(res);
+      res.json({ customer });
+    } catch (err) {
+      if (!(err instanceof MissingContactMethodError)) throw err;
+      res
+        .status(400)
+        .json({ error: 'Validation failed', details: { phone: [CONTACT_METHOD_MESSAGE] } });
+    }
+  }),
+);
+
+customersRouter.delete(
+  '/:id',
+  officeOnly,
+  wrap(async (req, res) => {
     const { id } = customerParamsSchema.parse(req.params);
-    res.status(501).json({ message: 'Pending database migration', id });
-  } catch (err) {
-    next(err);
-  }
-});
+    if (!(await deleteCustomer(id))) return void notFound(res);
+    res.status(204).end();
+  }),
+);

@@ -1,73 +1,53 @@
-# React + TypeScript + Vite
+# Sierra frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React, TypeScript, and Vite frontend for the CRM.
 
-Currently, two official plugins are available:
+## Run locally
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+Start PostgreSQL and the backend using the [root setup instructions](../README.md#first-time-setup). The API must be running on port 3000.
 
-## React Compiler
+In another terminal:
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-]);
+```bash
+cd frontend
+npm install
+npm run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://npmx.dev/package/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://npmx.dev/package/eslint-plugin-react-dom) for React-specific lint rules:
+Open the URL printed by Vite. No frontend environment variables are required for authentication. The Vite proxy forwards relative `/api/...` requests to `http://localhost:3000`.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x';
-import reactDom from 'eslint-plugin-react-dom';
+## Authentication
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-]);
+- `/`: public landing page with login and signup links. The email form carries the entered email to signup.
+- `/login`: email and password login.
+- `/signup`: name, email, password, and password confirmation. Signup signs the user in automatically; new accounts are associates.
+- `/dashboard`: protected account screen showing the signed-in user's name, email, role, and logout button.
+
+The frontend uses the existing `/api/auth/signup`, `/login`, `/me`, and `/logout` endpoints. The browser manages the HttpOnly session cookie; passwords and session credentials are never saved in browser storage.
+
+`AuthProvider` checks `/me` on startup and restores the current user after a reload. Protected pages wait for that check before rendering. Connection failures display a retry option. An unauthorized response ends the local session; a forbidden response does not log the user out. Login failures stay on the form.
+
+Active sessions are rechecked when the tab gains focus, becomes visible, and every minute while visible. Authentication changes are synchronized across tabs with BroadcastChannel where available, with focus checks as a fallback. Logout clears local account state only after the server confirms success. Return URLs are limited to the implemented dashboard route.
+
+## Checks
+
+```bash
+npm run build
+npm run lint
+npx playwright install --with-deps chromium
+npm test
 ```
+
+The Playwright suite uses mocked HTTP responses matching the backend contract, including a real browser cookie. It covers login/signup validation, session restoration, loading and failure states, expiration, logout, multiple tabs, redirects, and mobile layout. It does not require a database. Backend integration tests live in the root `tests/` directory.
+
+Root lint and formatting checks also apply:
+
+```bash
+cd ..
+npm run lint
+npm run format:check
+```
+
+## Deployment
+
+Serve the built `dist/` directory with a fallback to `index.html` for frontend routes. Forward `/api/*` to the backend before that fallback. Vite's development proxy is not part of the production build. Use HTTPS because the backend sets secure cookies in production, and keep backend secrets in the backend environment.

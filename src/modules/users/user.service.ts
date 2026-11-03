@@ -2,7 +2,7 @@ import bcrypt from 'bcryptjs';
 import { pool } from '../../db/pool.js';
 import type { SignupInput } from './user.schema.js';
 
-export type Role = 'associate' | 'manager';
+export type Role = 'associate' | 'manager' | 'technician';
 
 export interface PublicUser {
   id: number;
