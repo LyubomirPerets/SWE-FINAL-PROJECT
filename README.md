@@ -201,7 +201,8 @@ Other rules:
 
 ### Database
 
-- **Each schema change is a new numbered file** in `src/db/migrations/`. The latest is `003_customers.sql`, so the jobs table will be `004_jobs.sql`. Files run in name order, and each one runs inside a transaction.
+- **Each schema change is a new numbered file** in `src/db/migrations/`. The latest is `004_enable_rls.sql`, so the jobs table will be `005_jobs.sql`. Files run in name order, and each one runs inside a transaction.
+- **Enable Row Level Security on every new table.** Add `ALTER TABLE <name> ENABLE ROW LEVEL SECURITY;` right after its `CREATE TABLE`. Supabase's auto-generated REST API exposes every table in `public` to anyone with the project's public key, and RLS with no policies blocks that. Our backend connects as the table owner, so it isn't affected. `tests/rls.test.ts` fails if you forget.
 - **Never edit a migration after it has been merged.** `src/db/migrate.ts` records each file's name in the `schema_migrations` table and skips files it has already applied. If you edit `001_init.sql`, your teammates' databases will never get the change. To fix a merged migration, add a new one.
 - **Sample data** goes in `src/db/seed.ts`. Keep it safe to run twice, for example with `ON CONFLICT DO NOTHING`.
 - **Test new migrations locally first**, never on Supabase. Point `DATABASE_URL` at local Docker (`postgres://crm:crm@localhost:5432/crm`), run `npm run db:reset`, then `npm test`. The tests rebuild `crm_test` from the migrations on every run.
@@ -315,7 +316,7 @@ Empty strings in optional fields are saved as `null`, so a form can clear a fiel
 
 ### Jobs API
 
-> 🚧 **Scaffold only.** The routes, roles, and validation are in place, but there's no `jobs` table yet. `GET /api/jobs` returns an empty list, `POST` echoes back the validated body, and the other routes return 501. Real behavior comes with migration `004_jobs.sql`.
+> 🚧 **Scaffold only.** The routes, roles, and validation are in place, but there's no `jobs` table yet. `GET /api/jobs` returns an empty list, `POST` echoes back the validated body, and the other routes return 501. Real behavior comes with migration `005_jobs.sql`.
 
 A job is one scheduled visit to a customer (the ERD calls it "Services"). Office staff manage all jobs. Technicians will see and update only the jobs assigned to them, and can only change `status` and `notes`.
 
