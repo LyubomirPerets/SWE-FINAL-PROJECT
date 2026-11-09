@@ -88,7 +88,7 @@ Everyone develops against one Supabase Postgres database, so **your changes are 
 
 - **Never run `npm run db:reset`** while `DATABASE_URL` points at Supabase, and **never run `npm test` without a `TEST_DATABASE_URL` line**. Both drop every table in the shared database.
 - **`npm run db:migrate` is safe.** It only applies migrations that haven't run yet. Whoever merges a migration runs it once, and after that it's a no-op for everyone else.
-- **`npm run db:seed` is safe to run again.** It skips users that already exist and only adds customers if the table is empty.
+- **`npm run db:seed` is safe to run again.** It skips users that already exist, and skips sample customers whose first and last name are already in the table.
 - **Look at the data** in the Supabase dashboard under **Table Editor**, or use **SQL Editor** for queries.
 - **Free projects pause after about a week with no activity.** If connections suddenly time out, open the dashboard and resume the project.
 - **If the password changes**, everyone updates the password part of `DATABASE_URL` in their own `.env` and restarts `npm run dev`. Use a password with only letters and numbers, so it never needs URL-encoding.
