@@ -202,3 +202,33 @@ describe('misc', () => {
     expect(res.status).toBe(404);
   });
 });
+
+// TODO(James): turn each it.todo below into a real test. Change `it.todo` to `it` and add a body.
+// Rules are in src/modules/users/user.schema.ts.
+describe('signup validation: more coverage', () => {
+  // password of 7 characters → 400 with details.password; 8 characters → 201.
+  it.todo('requires a password of at least 8 characters');
+
+  // password longer than 128 characters → 400.
+  it.todo('rejects a password over 128 characters');
+
+  // email: 'nope' → 400 with details.email.
+  it.todo('rejects an invalid email');
+
+  // name: '' and name: '   ' (only spaces) → 400 with details.name.
+  it.todo('requires a non-blank name');
+
+  // Missing body fields entirely ({}) → 400, and nothing is inserted into users.
+  it.todo('rejects an empty body without creating a user');
+});
+
+describe('session management: more coverage', () => {
+  // Log in, then DELETE the user row directly with pool.query, then GET /api/auth/me → 401.
+  it.todo('GET /me returns 401 if the user was deleted after logging in');
+
+  // The login response body must not include password_hash or passwordHash (check every key).
+  it.todo('login response never includes the password hash');
+
+  // After logout, the old session row is gone from the "session" table.
+  it.todo('logout removes the session row from Postgres');
+});
