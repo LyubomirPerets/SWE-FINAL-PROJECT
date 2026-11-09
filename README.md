@@ -10,6 +10,7 @@ Express + TypeScript + PostgreSQL API for a CRM for home-services businesses (HV
 | Customers              | ✅ Done: full CRUD API, tests, React page                                                |
 | Jobs                   | 🚧 Routes and validation only, waiting on the jobs migration (see [Jobs API](#jobs-api)) |
 | Shared database        | ✅ Supabase Postgres, used by everyone for development                                   |
+| File storage (S3)      | 🚧 Bucket and S3 helpers ready; attachments API waits on its migration                   |
 | Cloud deploy           | ⏳ Not started                                                                           |
 
 ## Team & ownership
@@ -92,6 +93,29 @@ Everyone develops against one Supabase Postgres database, so **your changes are 
 - **Free projects pause after about a week with no activity.** If connections suddenly time out, open the dashboard and resume the project.
 - **If the password changes**, everyone updates the password part of `DATABASE_URL` in their own `.env` and restarts `npm run dev`. Use a password with only letters and numbers, so it never needs URL-encoding.
 - **Want a private sandbox?** Point `DATABASE_URL` back at `postgres://crm:crm@localhost:5432/crm` and run `npm run db:reset` there. It's your local Docker database, so wiping it only affects you.
+
+## File storage (S3)
+
+Files such as quotes, contracts and job photos go in a private Amazon S3 bucket (`crm-attachments-lp`, region `us-east-2`). They **never pass through our server**:
+
+1. The browser asks our API to upload a file, sending its name, type and size.
+2. The API checks the type and size, then returns a **presigned URL**, a link that allows exactly one upload for 5 minutes.
+3. The browser `PUT`s the file straight to S3 using that link.
+4. Downloads work the same way: the API returns a 5-minute link, and the file always downloads instead of opening in the browser.
+
+What's in place:
+
+- **`src/lib/s3.ts`** has the S3 helpers: `getS3().presignUpload(...)`, `presignDownload(...)`, `deleteObject(...)`, and `buildKey(...)` for naming files (`customers/<id>/<uuid>-<name>`).
+- **Allowed files:** PDF, JPEG, PNG and WebP, up to 10 MB. The type and exact size are part of the link's signature, so S3 rejects anything else.
+- **The bucket is private.** Every public access setting is blocked, and only signed links work.
+
+Setup:
+
+- **S3 is optional.** Without the `AWS_*` and `S3_BUCKET` values the app and tests run normally, and only S3 features fail, with an error naming the missing variables.
+- **To use it, ask Lyubomir for the keys** in a private message and add the four values from `.env.example` to your `.env`. Never post keys in the repo, an issue or the group chat.
+- **`npm run s3:check`** uploads a tiny file to the real bucket, downloads it, checks CORS and deletes it. Run it after setting up your `.env`.
+- **Tests never touch AWS.** `tests/s3.test.ts` uses fake keys, because creating a presigned link happens entirely on our machine.
+- **Deploying:** add the deployed frontend's URL to the bucket's CORS rule (S3 → bucket → Permissions → CORS), or browser uploads from it will be blocked.
 
 ## How we work (git workflow)
 
@@ -246,6 +270,7 @@ The front-end lives in [`frontend/`](frontend/) (React + Vite + TypeScript). It 
 | `npm run db:migrate`                      | Apply new migrations (run after every pull)               |
 | `npm run db:seed`                         | Insert seed users and customers (safe to run twice)       |
 | `npm run db:reset`                        | Wipe schema, migrate, seed (**deletes data, local only**) |
+| `npm run s3:check`                        | Test the real S3 bucket end to end (needs AWS keys)       |
 
 ### Docker
 
