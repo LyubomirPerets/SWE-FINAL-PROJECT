@@ -12,6 +12,7 @@
   padding: 16px clamp(16px, 4vw, 40px);
   background: #0a0630;
   color: #e8e3fa;
+  flex-wrap: wrap;
 }
 .app-header a {
   text-decoration: none;
@@ -20,6 +21,28 @@
   display: flex;
   gap: 20px;
   font-size: 14px;
+}
+.app-account {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+}
+.app-identity {
+  display: grid;
+  font-size: 13px;
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+.app-identity small {
+  color: #cbb5ff;
+}
+.app-account .btn {
+  flex-shrink: 0;
+}
+.app-logout-error {
+  margin: 0;
+  border-radius: 0;
 }
 .app-header nav a:hover,
 .app-header nav a[aria-current='page'] {
@@ -46,6 +69,46 @@
 .muted {
   margin: 0;
   color: #70677f;
+}
+.page-title .dashboard-eyebrow {
+  margin-bottom: 6px;
+  color: #6a42c1;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.page-title > .btn {
+  flex-shrink: 0;
+}
+.customer-count {
+  margin: 0 0 12px;
+  color: #70677f;
+  font-size: 14px;
+}
+.customer-empty {
+  padding: 36px 24px;
+  border: 1px solid #ede8f7;
+  border-radius: 12px;
+  background: #fff;
+  text-align: center;
+}
+.customer-empty h2 {
+  margin: 0 0 8px;
+  font-size: 20px;
+}
+.customer-empty p {
+  color: #70677f;
+}
+.customer-table-scroll {
+  position: relative;
+  overflow-x: auto;
+  border-radius: 12px;
+}
+.customer-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
 }
 .notice {
   padding: 10px 14px;
@@ -113,6 +176,7 @@
   border: 1px solid #ede8f7;
   border-radius: 12px;
   overflow: hidden;
+  min-width: 650px;
 }
 .customer-table th,
 .customer-table td {
@@ -207,6 +271,24 @@
   white-space: nowrap;
 }
 @media (max-width: 640px) {
+  .app-account {
+    width: 100%;
+    justify-content: space-between;
+  }
+  .page-title {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .filters > * {
+    min-width: 0;
+    max-width: 100%;
+  }
+  .form-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .form-actions {
+    flex-wrap: wrap;
+  }
   .hide-sm {
     display: none;
   }

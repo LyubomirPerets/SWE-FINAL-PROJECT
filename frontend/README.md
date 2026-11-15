@@ -21,7 +21,10 @@ Open the URL printed by Vite. No frontend environment variables are required for
 - `/`: public landing page with login and signup links. The email form carries the entered email to signup.
 - `/login`: email and password login.
 - `/signup`: name, email, password, and password confirmation. Signup signs the user in automatically; new accounts are associates.
-- `/dashboard`: protected account screen showing the signed-in user's name, email, role, and logout button.
+- `/dashboard`: protected customer dashboard with existing customers, search, service/status filters, and customer creation, editing, and deletion. The header shows the signed-in user's name, email, role, and logout button.
+- `/customers`: redirects to `/dashboard` so existing bookmarks still work.
+
+Customer records are loaded from `/api/customers` and saved through the existing POST, PATCH, and DELETE endpoints. Associates and managers can make changes; technicians have read-only access. Deletion requires confirmation, and the record stays visible until the API confirms success. New customers appear immediately after saving, with filters cleared so the new record is visible.
 
 The frontend uses the existing `/api/auth/signup`, `/login`, `/me`, and `/logout` endpoints. The browser manages the HttpOnly session cookie; passwords and session credentials are never saved in browser storage.
 
@@ -38,7 +41,7 @@ npx playwright install --with-deps chromium
 npm test
 ```
 
-The Playwright suite uses mocked HTTP responses matching the backend contract, including a real browser cookie. It covers login/signup validation, session restoration, loading and failure states, expiration, logout, multiple tabs, redirects, and mobile layout. It does not require a database. Backend integration tests live in the root `tests/` directory.
+The Playwright suite uses mocked HTTP responses matching the backend contract, including a real browser cookie. It covers login/signup validation, session restoration, expiration, logout, multiple tabs, dashboard routing, customer creation/editing/deletion, search and filters, read-only access, failure states, and mobile layout. It does not require a database. Backend integration tests live in the root `tests/` directory.
 
 Root lint and formatting checks also apply:
 
