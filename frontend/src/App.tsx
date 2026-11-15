@@ -1,9 +1,8 @@
-import { BrowserRouter, Link, Route, Routes } from 'react-router';
+import { BrowserRouter, Link, Navigate, Route, Routes } from 'react-router';
 import { AuthProvider } from './auth/AuthProvider';
 import { AuthShell } from './components/AuthShell';
 import { RequireAuth } from './components/RequireAuth';
 import { AuthPage } from './pages/AuthPage';
-import { CustomersPage } from './pages/CustomersPage';
 import { DashboardPage } from './pages/DashboardPage';
 import LandingPage from './pages/LandingPage';
 import './App.css';
@@ -18,7 +17,7 @@ function App() {
           <Route path="/signup" element={<AuthPage key="signup" mode="signup" />} />
           <Route element={<RequireAuth />}>
             <Route path="/dashboard" element={<DashboardPage />} />
-            <Route path="/customers" element={<CustomersPage />} />
+            <Route path="/customers" element={<Navigate to="/dashboard" replace />} />
           </Route>
           <Route
             path="*"
