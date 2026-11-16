@@ -11,7 +11,10 @@
     <title>Contacts – Sierra</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@500;600;700&display=swap" rel="stylesheet" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
     <link rel="stylesheet" href="styles.css" />
     <link rel="stylesheet" href="app.css" />
   </head>
@@ -34,7 +37,17 @@
         </nav>
         <a class="btn btn-white" href="login.html">Sign out</a>
         <button class="menu" id="menu" aria-label="Toggle menu" aria-expanded="false">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
+          <svg
+            width="22"
+            height="22"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+          >
+            <path d="M4 7h16M4 12h16M4 17h16" />
+          </svg>
         </button>
       </header>
 
@@ -45,21 +58,48 @@
             <p id="count" aria-live="polite"></p>
           </div>
           <button class="btn btn-violet btn-new" id="new-btn" type="button">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2.5"
+              stroke-linecap="round"
+              aria-hidden="true"
+            >
+              <path d="M12 5v14M5 12h14" />
+            </svg>
             New contact
           </button>
         </div>
 
         <div class="toolbar">
-          <input class="field-dark grow" id="q" type="search" placeholder="Search by name, email, phone, or address" aria-label="Search contacts" />
-          <select class="field-dark" id="status" aria-label="Filter by status"><option value="">All statuses</option></select>
-          <select class="field-dark" id="service" aria-label="Filter by service"><option value="">All services</option></select>
+          <input
+            class="field-dark grow"
+            id="q"
+            type="search"
+            placeholder="Search by name, email, phone, or address"
+            aria-label="Search contacts"
+          />
+          <select class="field-dark" id="status" aria-label="Filter by status">
+            <option value="">All statuses</option>
+          </select>
+          <select class="field-dark" id="service" aria-label="Filter by service">
+            <option value="">All services</option>
+          </select>
         </div>
 
         <div class="panel">
           <table class="list" id="table">
             <thead>
-              <tr><th scope="col">Name</th><th scope="col" class="c-svc">Service</th><th scope="col">Status</th><th scope="col" class="c-phone">Phone</th><th scope="col">Next follow-up</th></tr>
+              <tr>
+                <th scope="col">Name</th>
+                <th scope="col" class="c-svc">Service</th>
+                <th scope="col">Status</th>
+                <th scope="col" class="c-phone">Phone</th>
+                <th scope="col">Next follow-up</th>
+              </tr>
             </thead>
             <tbody id="rows"></tbody>
           </table>
@@ -76,31 +116,76 @@
     <script>
       (function () {
         var S = window.Sierra;
-        var $ = function (id) { return document.getElementById(id); };
-        var rows = $('rows'), table = $('table'), empty = $('empty');
-        S.STATUSES.forEach(function (v) { $('status').add(new Option(v, v)); });
-        S.SERVICES.forEach(function (v) { $('service').add(new Option(v, v)); });
+        var $ = function (id) {
+          return document.getElementById(id);
+        };
+        var rows = $('rows'),
+          table = $('table'),
+          empty = $('empty');
+        S.STATUSES.forEach(function (v) {
+          $('status').add(new Option(v, v));
+        });
+        S.SERVICES.forEach(function (v) {
+          $('service').add(new Option(v, v));
+        });
 
         function render() {
-          var list = S.all(), total = list.length;
-          var q = $('q').value.trim().toLowerCase(), st = $('status').value, sv = $('service').value;
-          var shown = list.filter(function (c) {
-            var hay = [S.fullName(c), c.email, c.phone, c.address].join(' ').toLowerCase();
-            return (!q || hay.indexOf(q) > -1) && (!st || c.status === st) && (!sv || c.service === sv);
-          }).sort(function (a, b) { return S.fullName(a).localeCompare(S.fullName(b)); });
+          var list = S.all(),
+            total = list.length;
+          var q = $('q').value.trim().toLowerCase(),
+            st = $('status').value,
+            sv = $('service').value;
+          var shown = list
+            .filter(function (c) {
+              var hay = [S.fullName(c), c.email, c.phone, c.address].join(' ').toLowerCase();
+              return (
+                (!q || hay.indexOf(q) > -1) && (!st || c.status === st) && (!sv || c.service === sv)
+              );
+            })
+            .sort(function (a, b) {
+              return S.fullName(a).localeCompare(S.fullName(b));
+            });
 
           var filtered = q || st || sv;
-          $('count').textContent = filtered ? shown.length + ' of ' + total + ' contacts' : total + (total === 1 ? ' contact' : ' contacts');
+          $('count').textContent = filtered
+            ? shown.length + ' of ' + total + ' contacts'
+            : total + (total === 1 ? ' contact' : ' contacts');
 
-          rows.innerHTML = shown.map(function (c) {
-            var d = S.due(c);
-            return '<tr data-id="' + c.id + '">' +
-              '<td><div class="who"><span class="av" aria-hidden="true">' + S.esc(S.initials(c)) + '</span><div><b><a href="contact.html?id=' + c.id + '">' + S.esc(S.fullName(c)) + '</a></b><small>' + S.esc(c.email || c.phone) + '</small></div></div></td>' +
-              '<td class="c-svc">' + S.esc(c.service) + '</td>' +
-              '<td><span class="tag ' + S.tagClass(c.status) + '">' + S.esc(c.status) + '</span></td>' +
-              '<td class="c-phone">' + S.esc(c.phone || '—') + '</td>' +
-              '<td class="' + (d.late ? 'late' : c.followUp ? '' : 'muted') + '">' + d.text + '</td></tr>';
-          }).join('');
+          rows.innerHTML = shown
+            .map(function (c) {
+              var d = S.due(c);
+              return (
+                '<tr data-id="' +
+                c.id +
+                '">' +
+                '<td><div class="who"><span class="av" aria-hidden="true">' +
+                S.esc(S.initials(c)) +
+                '</span><div><b><a href="contact.html?id=' +
+                c.id +
+                '">' +
+                S.esc(S.fullName(c)) +
+                '</a></b><small>' +
+                S.esc(c.email || c.phone) +
+                '</small></div></div></td>' +
+                '<td class="c-svc">' +
+                S.esc(c.service) +
+                '</td>' +
+                '<td><span class="tag ' +
+                S.tagClass(c.status) +
+                '">' +
+                S.esc(c.status) +
+                '</span></td>' +
+                '<td class="c-phone">' +
+                S.esc(c.phone || '—') +
+                '</td>' +
+                '<td class="' +
+                (d.late ? 'late' : c.followUp ? '' : 'muted') +
+                '">' +
+                d.text +
+                '</td></tr>'
+              );
+            })
+            .join('');
 
           table.hidden = !shown.length;
           empty.hidden = !!shown.length;
@@ -113,9 +198,13 @@
           }
         }
 
-        function add() { S.openDialog(null, render); }
+        function add() {
+          S.openDialog(null, render);
+        }
         $('new-btn').addEventListener('click', add);
-        ['q', 'status', 'service'].forEach(function (id) { $(id).addEventListener('input', render); });
+        ['q', 'status', 'service'].forEach(function (id) {
+          $(id).addEventListener('input', render);
+        });
         rows.addEventListener('click', function (e) {
           var tr = e.target.closest('tr[data-id]');
           if (tr && !e.target.closest('a')) location.href = 'contact.html?id=' + tr.dataset.id;
