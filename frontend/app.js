@@ -1,5 +1,7 @@
 /* Shared logic for contacts.html and contact.html */
 (function () {
+  /* Browser APIs are reached through globalThis, so no lint globals config is needed. */
+  var win = globalThis;
   var KEY = 'sierra.contacts.v1';
   var DAY = 864e5;
   var STATUSES = ['Lead', 'Active', 'Past customer'];
@@ -40,16 +42,16 @@
 
   function all() {
     try {
-      var raw = localStorage.getItem(KEY);
+      var raw = win.localStorage.getItem(KEY);
       if (raw) return JSON.parse(raw);
-    } catch (e) { if (memory) return memory; }
+    } catch { if (memory) return memory; }
     var s = seed();
     persist(s);
     return s;
   }
   function persist(list) {
     memory = list;
-    try { localStorage.setItem(KEY, JSON.stringify(list)); } catch (e) { /* storage unavailable: keep in memory */ }
+    try { win.localStorage.setItem(KEY, JSON.stringify(list)); } catch { /* storage unavailable: keep in memory */ }
   }
   function get(id) { return all().filter(function (c) { return c.id === id; })[0]; }
   function save(c) {
@@ -78,15 +80,15 @@
   var toastEl, toastTimer;
   function toast(msg) {
     if (!toastEl) {
-      toastEl = document.createElement('div');
+      toastEl = win.document.createElement('div');
       toastEl.className = 'toast';
       toastEl.setAttribute('role', 'status');
-      document.body.appendChild(toastEl);
+      win.document.body.appendChild(toastEl);
     }
     toastEl.textContent = msg;
     toastEl.classList.add('on');
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(function () { toastEl.classList.remove('on'); }, 2600);
+    win.clearTimeout(toastTimer);
+    toastTimer = win.setTimeout(function () { toastEl.classList.remove('on'); }, 2600);
   }
 
   /* new / edit dialog */
@@ -103,7 +105,7 @@
   function openDialog(existing, done) {
     var edit = !!existing;
     var c = existing || { service: 'HVAC', status: 'Lead', prefer: 'Text' };
-    var d = document.createElement('dialog');
+    var d = win.document.createElement('dialog');
     d.className = 'dlg';
     d.setAttribute('aria-labelledby', 'dlg-title');
     d.innerHTML =
@@ -125,7 +127,7 @@
       '</div>' +
       '<div class="dlg-actions"><button type="button" class="btn btn-ghost" data-close>Cancel</button>' +
       '<button type="submit" class="btn btn-violet">' + (edit ? 'Save changes' : 'Save contact') + '</button></div></form>';
-    document.body.appendChild(d);
+    win.document.body.appendChild(d);
 
     function el(id) { return d.querySelector('#' + id); }
     function val(id) { return el(id).value.trim(); }
@@ -175,12 +177,12 @@
   }
 
   /* mobile nav toggle */
-  document.addEventListener('DOMContentLoaded', function () {
-    var nav = document.getElementById('nav'), btn = document.getElementById('menu');
+  win.document.addEventListener('DOMContentLoaded', function () {
+    var nav = win.document.getElementById('nav'), btn = win.document.getElementById('menu');
     if (nav && btn) btn.addEventListener('click', function () {
       btn.setAttribute('aria-expanded', nav.classList.toggle('open'));
     });
   });
 
-  window.Sierra = { all: all, get: get, save: save, remove: remove, esc: esc, fullName: fullName, initials: initials, tagClass: tagClass, due: due, fmtDate: fmtDate, fmtStamp: fmtStamp, openDialog: openDialog, toast: toast, STATUSES: STATUSES, SERVICES: SERVICES };
+  win.Sierra = { all: all, get: get, save: save, remove: remove, esc: esc, fullName: fullName, initials: initials, tagClass: tagClass, due: due, fmtDate: fmtDate, fmtStamp: fmtStamp, openDialog: openDialog, toast: toast, STATUSES: STATUSES, SERVICES: SERVICES };
 })();

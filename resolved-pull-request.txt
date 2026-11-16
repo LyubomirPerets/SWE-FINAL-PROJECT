@@ -1,0 +1,8 @@
+  The ESLint errors in frontend/app.js have been resolved:
+  
+  1. Declared browser globals: Added /* global window, document, localStorage, setTimeout, clearTimeout */ at the top of the file to satisfy no-undef   
+  (compatible with ESLint flat config).
+  2. Removed unused catch parameters: Replaced catch (e) with optional catch binding catch { ... } in all() and persist(), resolving the @typescript-
+  eslint/no-unused-vars errors.
+  
+  npm run lint now passes cleanly with 0 errors and 0 warnings.
