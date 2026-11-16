@@ -2,7 +2,13 @@ import { Router } from 'express';
 import type { NextFunction, Request, Response } from 'express';
 import { requireAuth } from '../../middleware/auth.js';
 import { loginSchema, signupSchema } from './user.schema.js';
-import { EmailTakenError, createUser, findById, verifyCredentials } from './user.service.js';
+import {
+  EmailTakenError,
+  createUser,
+  findById,
+  verifyCredentials,
+  type PublicUser,
+} from './user.service.js';
 
 export const authRouter = Router();
 
@@ -11,10 +17,7 @@ const wrap = (fn: Handler) => (req: Request, res: Response, next: NextFunction) 
   fn(req, res).catch(next);
 };
 
-function startSession(
-  req: Request,
-  user: { id: number; role: 'associate' | 'manager' },
-): Promise<void> {
+function startSession(req: Request, user: Pick<PublicUser, 'id' | 'role'>): Promise<void> {
   // Regenerate to prevent session fixation.
   return new Promise((resolve, reject) => {
     req.session.regenerate((err) => {
