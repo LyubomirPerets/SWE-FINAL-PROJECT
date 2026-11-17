@@ -31,6 +31,7 @@ async function authServer(context: BrowserContext, signedIn = false) {
       },
     ]);
   }
+  await context.route('**/api/customers', (route) => route.fulfill({ json: { customers: [] } }));
   await context.route('**/api/auth/*', async (route) => {
     const request = route.request();
     const path = new URL(request.url()).pathname;
@@ -99,19 +100,19 @@ test('login errors, intended destination, refresh, logout, and back navigation',
   await page.getByLabel('Password', { exact: true }).fill(password);
   await page.getByRole('button', { name: 'Log in', exact: true }).click();
   await expect(page).toHaveURL('/dashboard?view=account#details');
-  await expect(page.getByRole('heading', { name: 'Welcome, Jane Doe' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Customers', exact: true })).toBeVisible();
   expect(server.submissions[1].contentType).toBe('application/json');
   expect(
     await page.evaluate(() => ({ local: localStorage.length, session: sessionStorage.length })),
   ).toEqual({ local: 0, session: 0 });
   await page.reload();
-  await expect(page.getByRole('heading', { name: 'Welcome, Jane Doe' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Customers', exact: true })).toBeVisible();
   await page.getByRole('button', { name: 'Log out', exact: true }).click();
   await expect(page).toHaveURL(/\/login/);
   await page.goBack();
   await page.goto('/dashboard');
   await expect(page).toHaveURL(/\/login/);
-  await expect(page.getByRole('heading', { name: 'Welcome, Jane Doe' })).toHaveCount(0);
+  await expect(page.getByRole('heading', { name: 'Customers', exact: true })).toHaveCount(0);
 });
 
 test('landing signup carries email, validates confirmation, and creates a logged-in account', async ({
@@ -167,7 +168,7 @@ test('startup service failure is retryable without treating the user as signed o
   await expect(page).toHaveURL('/dashboard');
   server.meStatus = 200;
   await page.getByRole('button', { name: 'Try again' }).click();
-  await expect(page.getByRole('heading', { name: 'Welcome, Jane Doe' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Customers', exact: true })).toBeVisible();
 });
 
 test('session checks tolerate network errors and detect expiration while idle', async ({
@@ -177,14 +178,14 @@ test('session checks tolerate network errors and detect expiration while idle', 
   const server = await authServer(context, true);
   await page.clock.install();
   await page.goto('/dashboard');
-  await expect(page.getByRole('heading', { name: 'Welcome, Jane Doe' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Customers', exact: true })).toBeVisible();
   server.meStatus = 503;
   const failedCheck = page.waitForResponse(
     (response) => response.url().endsWith('/api/auth/me') && response.status() === 503,
   );
   await page.evaluate(() => window.dispatchEvent(new Event('focus')));
   await failedCheck;
-  await expect(page.getByRole('heading', { name: 'Welcome, Jane Doe' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Customers', exact: true })).toBeVisible();
   server.meStatus = 200;
   server.user = null;
   await page.clock.runFor(60_001);
@@ -200,7 +201,7 @@ test('logout failure is visible and logout propagates to another tab after retry
   await page.goto('/dashboard');
   const other = await context.newPage();
   await other.goto('/dashboard');
-  await expect(other.getByRole('heading', { name: 'Welcome, Jane Doe' })).toBeVisible();
+  await expect(other.getByRole('heading', { name: 'Customers', exact: true })).toBeVisible();
   server.logoutStatus = 500;
   await page.getByRole('button', { name: 'Log out', exact: true }).click();
   await expect(page.getByRole('alert')).toContainText('We couldn’t log you out.');
@@ -241,7 +242,7 @@ test('initial session check does not flash a login form or private content', asy
   await expect(page.getByLabel('Password', { exact: true })).toHaveCount(0);
   await expect(page.getByText(user.email, { exact: true })).toHaveCount(0);
   release();
-  await expect(page.getByRole('heading', { name: 'Welcome, Jane Doe' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Customers', exact: true })).toBeVisible();
 });
 
 test('pending login disables duplicate submissions', async ({ page, context }) => {

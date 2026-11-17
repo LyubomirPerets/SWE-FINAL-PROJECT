@@ -159,21 +159,6 @@
   color: #573393;
   border: 1px solid #dfd0fb;
 }
-.account-details {
-  margin: 0 0 28px;
-}
-.account-details div {
-  padding: 14px 0;
-  border-bottom: 1px solid #ece7f3;
-}
-.account-details dt {
-  font-size: 13px;
-  color: #70677f;
-}
-.account-details dd {
-  margin: 3px 0 0;
-  font-weight: 500;
-}
 @media (max-width: 480px) {
   .auth-shell {
     padding-inline: 16px;
@@ -185,7 +170,4 @@
   .auth-header {
     padding-top: 20px;
   }
-}
-.dashboard-link {
-  margin-bottom: 12px;
 }

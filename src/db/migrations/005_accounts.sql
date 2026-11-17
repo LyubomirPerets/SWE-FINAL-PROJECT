@@ -1,4 +1,4 @@
--- 004: accounts, their contacts and files, and the services they subscribe to.
+-- 005: accounts, their contacts and files, and the services they subscribe to.
 -- Based on db/erd_v2.png. Names are snake_case to match the earlier migrations.
 -- The ERD's "User" table is already covered by `users` (001), so it isn't created here.
 -- `customers` (003) is left alone; accounts are a separate table for now.
@@ -70,3 +70,11 @@ CREATE TABLE account_services (
 );
 
 CREATE INDEX account_services_service_id_idx ON account_services (service_id);
+
+-- Row Level Security with no policies, like every other public table (see 004_enable_rls.sql).
+-- Blocks Supabase's public REST API; the backend connects as the owner and isn't affected.
+ALTER TABLE accounts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE contacts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE files ENABLE ROW LEVEL SECURITY;
+ALTER TABLE services ENABLE ROW LEVEL SECURITY;
+ALTER TABLE account_services ENABLE ROW LEVEL SECURITY;

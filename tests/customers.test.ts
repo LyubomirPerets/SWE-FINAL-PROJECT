@@ -125,3 +125,43 @@ describe('customers API', () => {
     expect((await tech.delete(`/api/customers/${id}`)).status).toBe(403);
   });
 });
+
+// TODO(James): turn each it.todo below into a real test. Change `it.todo` to `it`, add an
+// `async () => { ... }` body, and follow the style of the tests above (loginAs + supertest).
+describe('customers API: more coverage', () => {
+  // GET /api/customers. Create 3 customers, then check the newest is first (ORDER BY created_at DESC).
+  it.todo('lists customers newest first');
+
+  // Technicians can GET the list too. The tests above only check GET /:id for them.
+  it.todo('lets technicians list customers');
+
+  // PATCH with only { notes } must leave firstName, phone, service, etc. exactly as they were.
+  it.todo('PATCH changes only the fields that were sent');
+
+  // updatedAt should move forward after a PATCH, and createdAt should not change.
+  it.todo('PATCH updates updatedAt but not createdAt');
+
+  // PATCH {} (empty body) returns 200 with the unchanged customer, and 404 for a missing id.
+  it.todo('PATCH with an empty body is a no-op');
+
+  // Fields the API doesn't accept (id, createdBy, createdAt) must be ignored, not written.
+  // e.g. PATCH { id: 999, createdBy: 123, notes: 'x' } → id and createdBy unchanged.
+  it.todo('ignores id, createdBy and createdAt in the request body');
+
+  // Limits in src/modules/customers/customers.schema.ts: firstName/lastName 100 chars,
+  // phone 50, address 300, notes 5000. One over → 400 with details.<field>. Exactly at → 201.
+  it.todo('enforces max lengths on text fields');
+
+  // email: 'not-an-email' → 400 and details.email contains 'Enter an email like name@example.com'.
+  it.todo('rejects an invalid email with a readable message');
+
+  // '  Pat  ' should be stored as 'Pat' (the schema uses .trim()).
+  it.todo('trims whitespace from names and email');
+
+  // notes: "Robert'); DROP TABLE customers;--" is stored and returned exactly as typed,
+  // and the customers table still exists afterwards (we use parameterized queries).
+  it.todo('stores SQL-looking text literally');
+
+  // DELETE the same id twice: first 204, second 404.
+  it.todo('deleting an already-deleted customer returns 404');
+});

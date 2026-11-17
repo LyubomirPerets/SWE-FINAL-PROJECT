@@ -41,6 +41,8 @@ async function fakeBackend(context: BrowserContext, role: User['role'] = 'associ
       }),
     ],
     requests: [] as { method: string; path: string; body: unknown }[],
+    listStatus: 200,
+    deleteStatus: 204,
   };
   const user: User = { id: 1, name: 'Jane', email: 'j@example.com', role, createdAt: '' };
   await context.addCookies([
@@ -56,7 +58,11 @@ async function fakeBackend(context: BrowserContext, role: User['role'] = 'associ
       const id = Number(path.split('/')[3]);
       const body = req.postDataJSON() as Record<string, string> | null;
       server.requests.push({ method: req.method(), path, body });
-      if (req.method() === 'GET') return route.fulfill({ json: { customers: server.customers } });
+      if (req.method() === 'GET') {
+        return server.listStatus === 200
+          ? route.fulfill({ json: { customers: server.customers } })
+          : route.fulfill({ status: server.listStatus, json: { error: 'Customers unavailable' } });
+      }
       if (req.method() === 'POST') {
         if (!body?.email && !body?.phone)
           return route.fulfill({
@@ -77,6 +83,12 @@ async function fakeBackend(context: BrowserContext, role: User['role'] = 'associ
         server.customers[i] = { ...server.customers[i], ...(body as Partial<Customer>) };
         return route.fulfill({ json: { customer: server.customers[i] } });
       }
+      if (server.deleteStatus !== 204) {
+        return route.fulfill({
+          status: server.deleteStatus,
+          json: { error: 'Could not delete customer' },
+        });
+      }
       server.customers = server.customers.filter((c) => c.id !== id);
       return route.fulfill({ status: 204 });
     },
@@ -86,7 +98,10 @@ async function fakeBackend(context: BrowserContext, role: User['role'] = 'associ
 
 test('lists customers from the API and filters them', async ({ page, context }) => {
   await fakeBackend(context);
-  await page.goto('/customers');
+  await page.goto('/dashboard');
+  await expect(page).toHaveTitle('Customer dashboard | Sierra');
+  await expect(page.getByText('j@example.com', { exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Log out' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Customers' })).toBeVisible();
   await expect(page.getByText('2 total')).toBeVisible();
   const rows = page.locator('tbody tr');
@@ -106,7 +121,9 @@ test('lists customers from the API and filters them', async ({ page, context }) 
 
 test('adds a customer, requiring an email or phone first', async ({ page, context }) => {
   const server = await fakeBackend(context);
-  await page.goto('/customers');
+  await page.goto('/dashboard');
+  await page.getByLabel('Search customers').fill('Luis');
+  await page.getByLabel('Filter by service').selectOption('garage_door');
   await page.getByRole('button', { name: 'Add customer' }).click();
   await page.getByLabel('First name').fill('Pat');
   await page.getByLabel('Last name').fill('Homeowner');
@@ -119,6 +136,8 @@ test('adds a customer, requiring an email or phone first', async ({ page, contex
   await page.getByRole('button', { name: 'Add customer' }).last().click();
   await expect(page.getByRole('status')).toHaveText('Pat Homeowner added.');
   await expect(page.locator('tbody tr')).toHaveCount(3);
+  await expect(page.getByLabel('Search customers')).toHaveValue('');
+  await expect(page.getByLabel('Filter by service')).toHaveValue('');
   const post = server.requests.find((r) => r.method === 'POST');
   expect(post?.body).toMatchObject({
     firstName: 'Pat',
@@ -128,11 +147,14 @@ test('adds a customer, requiring an email or phone first', async ({ page, contex
     service: 'lawn',
     status: 'lead',
   });
+  await page.reload();
+  await expect(page.locator('tbody tr')).toHaveCount(3);
+  await expect(page.locator('tbody tr').first()).toContainText('Pat Homeowner');
 });
 
 test('edits and deletes a customer', async ({ page, context }) => {
   const server = await fakeBackend(context);
-  await page.goto('/customers');
+  await page.goto('/dashboard');
   await page.getByRole('button', { name: 'Edit Dana Whitfield' }).click();
   await expect(page.getByLabel('Email')).toHaveValue('dana@example.com');
   await page.getByLabel('Status', { exact: true }).selectOption('past_customer');
@@ -142,17 +164,111 @@ test('edits and deletes a customer', async ({ page, context }) => {
 
   page.once('dialog', (dialog) => dialog.accept());
   await page.getByRole('button', { name: 'Edit Dana Whitfield' }).click();
-  await page.getByRole('button', { name: 'Delete' }).click();
+  await page.getByRole('button', { name: 'Delete', exact: true }).click();
   await expect(page.getByRole('status')).toHaveText('Dana Whitfield deleted.');
   await expect(page.locator('tbody tr')).toHaveCount(1);
+  await page.reload();
+  await expect(page.locator('tbody tr')).toHaveCount(1);
+  await expect(page.locator('tbody')).not.toContainText('Dana Whitfield');
 });
 
 test('technicians get a read-only list', async ({ page, context }) => {
   await fakeBackend(context, 'technician');
-  await page.goto('/customers');
+  await page.goto('/dashboard');
   await expect(page.locator('tbody tr')).toHaveCount(2);
   await expect(page.getByRole('button', { name: 'Add customer' })).toHaveCount(0);
   await expect(page.getByRole('button', { name: /^Edit/ })).toHaveCount(0);
+  await expect(page.getByRole('button', { name: /^Delete/ })).toHaveCount(0);
+});
+
+test('old customer links open the customer dashboard', async ({ page, context }) => {
+  await fakeBackend(context);
+  await page.goto('/customers');
+  await expect(page).toHaveURL('/dashboard');
+  await expect(page.locator('tbody tr')).toHaveCount(2);
+});
+
+test('deleting from the list supports cancel, failure, and retry', async ({ page, context }) => {
+  const server = await fakeBackend(context, 'manager');
+  await page.goto('/dashboard');
+  const remove = page.getByRole('button', { name: 'Delete Dana Whitfield' });
+  page.once('dialog', (dialog) => dialog.dismiss());
+  await remove.click();
+  await expect(page.locator('tbody tr')).toHaveCount(2);
+  expect(server.requests.filter((r) => r.method === 'DELETE')).toHaveLength(0);
+
+  server.deleteStatus = 500;
+  page.once('dialog', (dialog) => dialog.accept());
+  await remove.click();
+  await expect(page.getByRole('alert')).toHaveText('Could not delete customer');
+  await expect(page.locator('tbody tr')).toHaveCount(2);
+  await expect(remove).toBeEnabled();
+
+  server.deleteStatus = 204;
+  page.once('dialog', (dialog) => dialog.accept());
+  await remove.click();
+  await expect(page.getByRole('status')).toHaveText('Dana Whitfield deleted.');
+  await expect(page.locator('tbody tr')).toHaveCount(1);
+  await expect(page.getByRole('alert')).toHaveCount(0);
+});
+
+test('pending deletion disables customer mutations until the server confirms', async ({
+  page,
+  context,
+}) => {
+  await fakeBackend(context);
+  let release!: () => void;
+  const gate = new Promise<void>((resolve) => {
+    release = resolve;
+  });
+  let attempts = 0;
+  await page.route('**/api/customers/1', async (route) => {
+    attempts += 1;
+    await gate;
+    await route.fulfill({ status: 204 });
+  });
+  await page.goto('/dashboard');
+  page.once('dialog', (dialog) => dialog.accept());
+  const remove = page.getByRole('button', { name: 'Delete Dana Whitfield' });
+  await remove.click();
+  await expect(remove).toBeDisabled();
+  await expect(remove).toHaveText('Deleting…');
+  await expect(page.getByRole('button', { name: 'Add customer' })).toBeDisabled();
+  await expect(page.locator('tbody tr')).toHaveCount(2);
+  expect(attempts).toBe(1);
+  release();
+  await expect(page.locator('tbody tr')).toHaveCount(1);
+  await expect(page.getByRole('button', { name: 'Add customer' })).toBeEnabled();
+});
+
+test('empty and unavailable customer lists have useful states', async ({ page, context }) => {
+  const server = await fakeBackend(context);
+  server.listStatus = 503;
+  server.customers = [];
+  await page.goto('/dashboard');
+  await expect(page.getByRole('alert')).toContainText('Customers unavailable');
+  await expect(page.getByRole('button', { name: 'Add customer' })).toBeDisabled();
+  server.listStatus = 200;
+  await page.getByRole('button', { name: 'Retry' }).click();
+  await expect(page.getByRole('heading', { name: 'No customers yet' })).toBeVisible();
+  await expect(page.getByText('0 total')).toBeVisible();
+  await page.getByRole('button', { name: 'Add customer' }).click();
+  await expect(page.getByRole('form', { name: 'New customer' })).toBeVisible();
+});
+
+test('dashboard and customer form fit a mobile viewport', async ({ page, context }) => {
+  await fakeBackend(context);
+  await page.setViewportSize({ width: 375, height: 812 });
+  await page.goto('/dashboard');
+  await expect(page.locator('tbody tr')).toHaveCount(2);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
+    true,
+  );
+  await page.getByRole('button', { name: 'Add customer' }).click();
+  await expect(page.getByLabel('First name')).toBeVisible();
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
+    true,
+  );
 });
 
 test('signed-out visitors are sent to login', async ({ page, context }) => {
