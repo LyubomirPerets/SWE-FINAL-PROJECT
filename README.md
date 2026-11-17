@@ -228,7 +228,7 @@ Other rules:
 - **Each schema change is a new numbered file** in `src/db/migrations/`. The latest is `004_enable_rls.sql`, so the jobs table will be `005_jobs.sql`. Files run in name order, and each one runs inside a transaction.
 - **Enable Row Level Security on every new table.** Add `ALTER TABLE <name> ENABLE ROW LEVEL SECURITY;` right after its `CREATE TABLE`. Supabase's auto-generated REST API exposes every table in `public` to anyone with the project's public key, and RLS with no policies blocks that. Our backend connects as the table owner, so it isn't affected. `tests/rls.test.ts` fails if you forget.
 - **Never edit a migration after it has been merged.** `src/db/migrate.ts` records each file's name in the `schema_migrations` table and skips files it has already applied. If you edit `001_init.sql`, your teammates' databases will never get the change. To fix a merged migration, add a new one.
-- **Sample data** goes in `src/db/seed.ts`. Keep it safe to run twice, for example with `ON CONFLICT DO NOTHING`.
+- **Sample data**: users and customers go in `src/db/seed.ts`; accounts, services, contacts, files and account services go in the `db/seed*.sql` files, which `db/seed.ts` runs in order. Keep all of it safe to run twice, for example with `ON CONFLICT DO NOTHING` or `WHERE NOT EXISTS`.
 - **Test new migrations locally first**, never on Supabase. Point `DATABASE_URL` at local Docker (`postgres://crm:crm@localhost:5432/crm`), run `npm run db:reset`, then `npm test`. The tests rebuild `crm_test` from the migrations on every run.
 - **Look at the database directly:** use the Supabase **Table Editor** or **SQL Editor** for the shared database. For local Docker, use:
   ```bash
@@ -268,7 +268,7 @@ The front-end lives in [`frontend/`](frontend/) (React + Vite + TypeScript). It 
 | `npm run format` / `npm run format:check` | Prettier                                                  |
 | `npm run typecheck`                       | `tsc --noEmit`                                            |
 | `npm run db:migrate`                      | Apply new migrations (run after every pull)               |
-| `npm run db:seed`                         | Insert seed users and customers (safe to run twice)       |
+| `npm run db:seed`                         | Insert all seed data (safe to run twice)                  |
 | `npm run db:reset`                        | Wipe schema, migrate, seed (**deletes data, local only**) |
 | `npm run s3:check`                        | Test the real S3 bucket end to end (needs AWS keys)       |
 

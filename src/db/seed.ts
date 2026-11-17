@@ -123,6 +123,7 @@ export async function seed(): Promise<void> {
     );
   }
   console.log(`Seeded ${seedUsers.length} users (password: ${SEED_PASSWORD})`);
+  // Accounts, services, contacts and files are seeded from db/*.sql by db/seed.ts.
 
   // Customers have no unique key (some have no email), so skip any seed customer whose
   // first + last name already exists. Safe to run twice, and new seed rows still get added
