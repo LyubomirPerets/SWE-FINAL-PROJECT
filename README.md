@@ -169,7 +169,7 @@ Other rules:
 
 - **Each schema change is a new numbered file** in `src/db/migrations/`, such as `002_customers.sql`, then `003_interactions.sql`. Files run in name order, and each one runs inside a transaction.
 - **Never edit a migration after it has been merged.** `src/db/migrate.ts` records each file's name in the `schema_migrations` table and skips files it has already applied. If you edit `001_init.sql`, your teammates' databases will never get the change. To fix a merged migration, add a new one.
-- **Sample data** goes in `src/db/seed.ts`. Keep it safe to run twice, for example with `ON CONFLICT DO NOTHING`.
+- **Sample data**: users and customers go in `src/db/seed.ts`; accounts, services, contacts, files and account services go in the `db/seed*.sql` files, which `db/seed.ts` runs in order. Keep all of it safe to run twice, for example with `ON CONFLICT DO NOTHING` or `WHERE NOT EXISTS`.
 - **Test your changes** with `npm run db:reset`, which drops everything and rebuilds it, and with `npm test`. The tests rebuild `crm_test` from the migrations on every run.
 - **Look at the database directly:**
   ```bash
@@ -206,7 +206,7 @@ The front-end lives in [`frontend/`](frontend/) (React + Vite + TypeScript). It 
 | `npm run format` / `npm run format:check` | Prettier                                      |
 | `npm run typecheck`                       | `tsc --noEmit`                                |
 | `npm run db:migrate`                      | Apply new migrations (run after every pull)   |
-| `npm run db:seed`                         | Insert seed users (safe to run twice)         |
+| `npm run db:seed`                         | Insert all seed data (safe to run twice)      |
 | `npm run db:reset`                        | Wipe schema, migrate, seed (**deletes data**) |
 
 ### Docker

@@ -12,5 +12,5 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true
   },
-  "include": ["src", "tests", "vitest.config.ts"]
+  "include": ["src", "db", "tests", "vitest.config.ts"]
 }
