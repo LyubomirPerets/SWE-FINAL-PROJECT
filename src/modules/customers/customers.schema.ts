@@ -1,7 +1,19 @@
 import { z } from 'zod';
 
-export const customerServices = ['hvac', 'lawn', 'garage_door'] as const;
-export const customerStatuses = ['lead', 'active', 'past_customer'] as const;
+export const customerServices = [
+  'hvac',
+  'garage_door',
+  'painting_interior',
+  'painting_exterior',
+  'plumbing',
+  'flooring',
+  'tree',
+  'lawn',
+] as const;
+// Pipeline: lead -> opportunity -> converted. 'converted' is only set by
+// POST /api/customers/:id/convert, so clients can't send it.
+export const customerStatuses = ['lead', 'opportunity', 'converted'] as const;
+export const editableStatuses = ['lead', 'opportunity'] as const;
 export const contactMethods = ['text', 'call', 'email'] as const;
 
 // Optional text fields: empty strings from forms become null, which also clears the field.
@@ -21,7 +33,7 @@ const baseFields = {
   phone: optionalText(50),
   address: optionalText(300),
   service: z.enum(customerServices),
-  status: z.enum(customerStatuses),
+  status: z.enum(editableStatuses),
   preferredContact: z.enum(contactMethods),
   followUpDate: z.preprocess(
     (v) => (v === '' ? null : v),
@@ -55,5 +67,12 @@ export const customerParamsSchema = z.object({
   id: z.coerce.number().int('Invalid customer id').positive('Invalid customer id'),
 });
 
+// Convert into a new account (default) or attach to an existing one.
+export const convertCustomerSchema = z.object({
+  accountId: z.coerce.number().int().positive('Invalid account id').optional(),
+});
+
+export type ConvertCustomerInput = z.infer<typeof convertCustomerSchema>;
+export type CustomerStatus = (typeof customerStatuses)[number];
 export type CreateCustomerInput = z.infer<typeof createCustomerSchema>;
 export type UpdateCustomerInput = z.infer<typeof updateCustomerSchema>;
