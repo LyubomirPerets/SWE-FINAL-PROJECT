@@ -1,10 +1,17 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { ApiError, type FieldErrors } from '../api/client';
-import { createCustomer, deleteCustomer, listCustomers, updateCustomer } from '../api/customers';
+import {
+  convertCustomer,
+  createCustomer,
+  deleteCustomer,
+  listCustomers,
+  updateCustomer,
+} from '../api/customers';
 import { AppHeader } from '../components/AppHeader';
 import { useAuth } from '../hooks/useAuth';
 import {
   CONTACT_LABELS,
+  EDITABLE_STATUS_LABELS,
   SERVICE_LABELS,
   STATUS_LABELS,
   type ContactMethod,
@@ -36,7 +43,7 @@ function toInput(c: Customer): CustomerInput {
     phone: c.phone ?? '',
     address: c.address ?? '',
     service: c.service,
-    status: c.status,
+    status: c.status === 'converted' ? undefined : c.status,
     preferredContact: c.preferredContact,
     followUpDate: c.followUpDate ?? '',
     notes: c.notes ?? '',
@@ -68,6 +75,8 @@ export function DashboardPage() {
   const [deleteError, setDeleteError] = useState('');
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const deleting = useRef(false);
+  const [convertingId, setConvertingId] = useState<number | null>(null);
+  const busy = editing !== null || deletingId !== null || convertingId !== null;
 
   useEffect(() => {
     const controller = new AbortController();
@@ -139,6 +148,26 @@ export function DashboardPage() {
     }
   }
 
+  async function convert(customer: Customer) {
+    if (convertingId !== null) return;
+    const name = `${customer.firstName} ${customer.lastName}`;
+    if (!window.confirm(`Convert ${name}? This creates an account and a contact for them.`)) return;
+    setConvertingId(customer.id);
+    setDeleteError('');
+    setNotice('');
+    try {
+      const res = await convertCustomer(customer.id);
+      setCustomers((current) =>
+        (current ?? []).map((c) => (c.id === customer.id ? res.customer : c)),
+      );
+      setNotice(`${name} converted to an account.`);
+    } catch (err) {
+      setDeleteError(err instanceof ApiError ? err.message : `We couldn’t convert ${name}.`);
+    } finally {
+      setConvertingId(null);
+    }
+  }
+
   return (
     <div className="app-shell">
       <title>Customer dashboard | Sierra</title>
@@ -154,7 +183,7 @@ export function DashboardPage() {
           {canEdit && (
             <button
               className="btn btn-primary"
-              disabled={customers === null || editing !== null || deletingId !== null}
+              disabled={customers === null || busy}
               onClick={() => {
                 setNotice('');
                 setDeleteError('');
@@ -307,9 +336,19 @@ export function DashboardPage() {
                     {canEdit && (
                       <td>
                         <div className="customer-actions">
+                          {c.status === 'opportunity' && (
+                            <button
+                              className="btn"
+                              disabled={busy}
+                              onClick={() => convert(c)}
+                              aria-label={`Convert ${c.firstName} ${c.lastName}`}
+                            >
+                              {convertingId === c.id ? 'Converting…' : 'Convert'}
+                            </button>
+                          )}
                           <button
                             className="btn btn-link"
-                            disabled={editing !== null || deletingId !== null}
+                            disabled={busy}
                             onClick={() => setEditing({ mode: 'edit', customer: c })}
                             aria-label={`Edit ${c.firstName} ${c.lastName}`}
                           >
@@ -317,7 +356,7 @@ export function DashboardPage() {
                           </button>
                           <button
                             className="btn btn-danger"
-                            disabled={editing !== null || deletingId !== null}
+                            disabled={busy}
                             onClick={() => remove(c)}
                             aria-label={`Delete ${c.firstName} ${c.lastName}`}
                           >
@@ -441,7 +480,9 @@ function CustomerForm({
           {field('phone', 'Phone', text('phone', 'tel'))}
           {field('address', 'Address', text('address'))}
           {field('service', 'Service', select('service', SERVICE_LABELS))}
-          {field('status', 'Status', select('status', STATUS_LABELS))}
+          {customer?.status === 'converted'
+            ? field('status', 'Status', <input id="f-status" value="Converted" readOnly />)
+            : field('status', 'Status', select('status', EDITABLE_STATUS_LABELS))}
           {field(
             'preferredContact',
             'Preferred contact',

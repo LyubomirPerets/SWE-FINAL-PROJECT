@@ -207,13 +207,13 @@
   background: #fff4dc;
   color: #7a5200;
 }
-.tag-active {
+.tag-opportunity {
+  background: #e4ecff;
+  color: #2a4a9e;
+}
+.tag-converted {
   background: #e3f6ea;
   color: #1d6b3a;
-}
-.tag-past_customer {
-  background: #eeecf3;
-  color: #5a536a;
 }
 .customer-form {
   margin-bottom: 24px;

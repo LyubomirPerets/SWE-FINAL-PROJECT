@@ -22,3 +22,16 @@ export function updateCustomer(id: number, input: CustomerInput) {
 export function deleteCustomer(id: number) {
   return requestJson<void>(`/api/customers/${id}`, { method: 'DELETE' });
 }
+
+export interface Conversion {
+  customer: Customer;
+  accountId: number;
+  contactId: number;
+}
+
+export function convertCustomer(id: number) {
+  return requestJson<Conversion>(`/api/customers/${id}/convert`, {
+    method: 'POST',
+    body: JSON.stringify({}),
+  });
+}
