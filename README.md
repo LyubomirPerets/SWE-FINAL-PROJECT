@@ -88,7 +88,7 @@ Seed accounts, all with password `Password123!`:
 
 Everyone develops against one Supabase Postgres database, so **your changes are visible to the whole team**, and so are your mistakes.
 
-- **Never run `npm run db:reset`** while `DATABASE_URL` points at Supabase, and **never run `npm test` without a `TEST_DATABASE_URL` line**. Both drop every table in the shared database.
+- **`npm run db:reset` and `npm test` drop every table**, so they refuse to run against anything but a local database (`localhost`). If you see `Refusing to reset the database`, point `DATABASE_URL` at local Docker for `db:reset`, or add a `TEST_DATABASE_URL` line for `npm test`.
 - **`npm run db:migrate` is safe.** It only applies migrations that haven't run yet. Whoever merges a migration runs it once, and after that it's a no-op for everyone else.
 - **`npm run db:seed` is safe to run again.** It skips users that already exist, and skips sample customers whose first and last name are already in the table.
 - **Look at the data** in the Supabase dashboard under **Table Editor**, or use **SQL Editor** for queries.
