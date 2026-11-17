@@ -2,12 +2,16 @@ import { Router, type NextFunction, type Request, type Response } from 'express'
 import { requireAuth, requireRole } from '../../middleware/auth.js';
 import {
   CONTACT_METHOD_MESSAGE,
+  convertCustomerSchema,
   createCustomerSchema,
   customerParamsSchema,
   updateCustomerSchema,
 } from './customers.schema.js';
 import {
+  AccountNotFoundError,
   MissingContactMethodError,
+  PipelineConflictError,
+  convertCustomer,
   createCustomer,
   deleteCustomer,
   getCustomer,
@@ -66,10 +70,36 @@ customersRouter.patch(
       if (!customer) return void notFound(res);
       res.json({ customer });
     } catch (err) {
+      if (err instanceof PipelineConflictError) {
+        return void res.status(409).json({ error: err.message });
+      }
       if (!(err instanceof MissingContactMethodError)) throw err;
       res
         .status(400)
         .json({ error: 'Validation failed', details: { phone: [CONTACT_METHOD_MESSAGE] } });
+    }
+  }),
+);
+
+// Opportunity -> converted: creates (or links) an account and a contact.
+customersRouter.post(
+  '/:id/convert',
+  officeOnly,
+  wrap(async (req, res) => {
+    const { id } = customerParamsSchema.parse(req.params);
+    const data = convertCustomerSchema.parse(req.body ?? {});
+    try {
+      const result = await convertCustomer(id, data);
+      if (!result) return void notFound(res);
+      res.json(result);
+    } catch (err) {
+      if (err instanceof PipelineConflictError) {
+        return void res.status(409).json({ error: err.message });
+      }
+      if (!(err instanceof AccountNotFoundError)) throw err;
+      res
+        .status(400)
+        .json({ error: 'Validation failed', details: { accountId: ['Account not found'] } });
     }
   }),
 );
