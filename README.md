@@ -2,6 +2,8 @@
 
 Express + TypeScript + PostgreSQL API for a CRM for home-services businesses (HVAC, lawn care, garage doors). Office staff track customers and schedule jobs, and technicians see the jobs assigned to them.
 
+**IMPORTANT => Whenever a PR changes package.json, you'll have to run npm install after pulling!**
+
 ## Where we are (Sprint 3)
 
 | Area                   | Status                                                                                   |
