@@ -8,13 +8,15 @@ import { pool, closePool } from '../src/db/pool.js';
 
 const dir = path.dirname(fileURLToPath(import.meta.url));
 
-// Order matters: contacts, files and links look up accounts and services by name.
+// Order matters: contacts, files and links look up accounts and services by name,
+// and interaction log entries look up contacts by email.
 const files = [
   'seedAccount.sql',
   'seedService.sql',
   'seedContact.sql',
   'seedFile.sql',
   'seedAccountService.sql',
+  'seedInteractionLog.sql',
 ];
 
 export async function seedFromSqlFiles(): Promise<void> {
