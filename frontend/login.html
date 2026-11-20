@@ -210,7 +210,9 @@
                 <div class="demo-box" id="demo-box">
                   <div class="demo-box-title">
                     <span>Quick Demo Sign In</span>
-                    <span style="font-size: 10px; text-transform: none; font-weight: 500">Click to fill</span>
+                    <span style="font-size: 10px; text-transform: none; font-weight: 500"
+                      >Click to fill</span
+                    >
                   </div>
                   <div class="demo-pills">
                     <button
@@ -402,14 +404,8 @@
           toggleBtn.addEventListener('click', function () {
             var isPassword = passwordInput.type === 'password';
             passwordInput.type = isPassword ? 'text' : 'password';
-            toggleBtn.setAttribute(
-              'aria-label',
-              isPassword ? 'Hide password' : 'Show password',
-            );
-            toggleBtn.setAttribute(
-              'title',
-              isPassword ? 'Hide password' : 'Show password',
-            );
+            toggleBtn.setAttribute('aria-label', isPassword ? 'Hide password' : 'Show password');
+            toggleBtn.setAttribute('title', isPassword ? 'Hide password' : 'Show password');
             if (eyeIcon && eyeOffIcon) {
               eyeIcon.style.display = isPassword ? 'none' : 'block';
               eyeOffIcon.style.display = isPassword ? 'block' : 'none';
@@ -571,8 +567,7 @@
                 form.style.display = 'none';
                 document.getElementById('user-display-name').textContent =
                   result.data.user.name || 'there';
-                document.getElementById('user-display-email').textContent =
-                  result.data.user.email;
+                document.getElementById('user-display-email').textContent = result.data.user.email;
                 successView.classList.add('visible');
 
                 var remaining = 2;
@@ -586,11 +581,7 @@
                   }
                 }, 1000);
               } else if (result.status === 401) {
-                setFieldError(
-                  passwordInput,
-                  passwordError,
-                  'Invalid email or password',
-                );
+                setFieldError(passwordInput, passwordError, 'Invalid email or password');
                 formErrorMsg.textContent =
                   'Invalid email or password. Please verify your credentials and try again.';
                 formError.classList.add('visible');

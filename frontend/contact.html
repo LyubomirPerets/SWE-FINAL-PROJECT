@@ -11,7 +11,10 @@
     <title>Contact – Sierra</title>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@500;600;700&display=swap" rel="stylesheet" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Plus+Jakarta+Sans:wght@500;600;700&display=swap"
+      rel="stylesheet"
+    />
     <link rel="stylesheet" href="styles.css" />
     <link rel="stylesheet" href="app.css" />
   </head>
@@ -34,13 +37,34 @@
         </nav>
         <a class="btn btn-white" href="login.html">Sign out</a>
         <button class="menu" id="menu" aria-label="Toggle menu" aria-expanded="false">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16" /></svg>
+          <svg
+            width="22"
+            height="22"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+          >
+            <path d="M4 7h16M4 12h16M4 17h16" />
+          </svg>
         </button>
       </header>
 
       <main class="app-main">
         <a class="crumb" href="contacts.html">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M15 6l-6 6 6 6" /></svg>
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            aria-hidden="true"
+          >
+            <path d="M15 6l-6 6 6 6" />
+          </svg>
           All contacts
         </a>
         <div id="view"></div>
@@ -54,34 +78,70 @@
     <script src="app.js"></script>
     <script>
       (function () {
-        var S = window.Sierra, view = document.getElementById('view');
+        var S = window.Sierra,
+          view = document.getElementById('view');
         var id = new URLSearchParams(location.search).get('id');
 
-        function fact(label, html) { return '<div><dt>' + label + '</dt><dd>' + html + '</dd></div>'; }
+        function fact(label, html) {
+          return '<div><dt>' + label + '</dt><dd>' + html + '</dd></div>';
+        }
 
         function render() {
           var c = S.get(id);
           if (!c) {
             document.title = 'Contact not found – Sierra';
-            view.innerHTML = '<div class="panel"><div class="empty"><strong>Contact not found</strong>It may have been deleted.<br><a class="btn btn-violet" href="contacts.html">Back to contacts</a></div></div>';
+            view.innerHTML =
+              '<div class="panel"><div class="empty"><strong>Contact not found</strong>It may have been deleted.<br><a class="btn btn-violet" href="contacts.html">Back to contacts</a></div></div>';
             return;
           }
           document.title = S.fullName(c) + ' – Sierra';
           var d = S.due(c);
-          var acts = (c.activity || []).slice().sort(function (a, b) { return b.at.localeCompare(a.at); });
+          var acts = (c.activity || []).slice().sort(function (a, b) {
+            return b.at.localeCompare(a.at);
+          });
 
           view.innerHTML =
             '<div class="profile">' +
             '<section class="panel pad" aria-label="Contact details">' +
-            '<div class="id-head"><span class="av av-lg" aria-hidden="true">' + S.esc(S.initials(c)) + '</span><div>' +
-            '<h1>' + S.esc(S.fullName(c)) + '</h1><span class="tag ' + S.tagClass(c.status) + '">' + S.esc(c.status) + '</span></div></div>' +
+            '<div class="id-head"><span class="av av-lg" aria-hidden="true">' +
+            S.esc(S.initials(c)) +
+            '</span><div>' +
+            '<h1>' +
+            S.esc(S.fullName(c)) +
+            '</h1><span class="tag ' +
+            S.tagClass(c.status) +
+            '">' +
+            S.esc(c.status) +
+            '</span></div></div>' +
             '<dl class="facts">' +
-            fact('Email', c.email ? '<a href="mailto:' + S.esc(c.email) + '">' + S.esc(c.email) + '</a>' : '<span class="muted">Not set</span>') +
-            fact('Phone', c.phone ? '<a href="tel:' + S.esc(c.phone.replace(/[^\d+]/g, '')) + '">' + S.esc(c.phone) + '</a>' : '<span class="muted">Not set</span>') +
+            fact(
+              'Email',
+              c.email
+                ? '<a href="mailto:' + S.esc(c.email) + '">' + S.esc(c.email) + '</a>'
+                : '<span class="muted">Not set</span>',
+            ) +
+            fact(
+              'Phone',
+              c.phone
+                ? '<a href="tel:' +
+                    S.esc(c.phone.replace(/[^\d+]/g, '')) +
+                    '">' +
+                    S.esc(c.phone) +
+                    '</a>'
+                : '<span class="muted">Not set</span>',
+            ) +
             fact('Address', c.address ? S.esc(c.address) : '<span class="muted">Not set</span>') +
             fact('Service', S.esc(c.service)) +
             fact('Preferred contact', S.esc(c.prefer)) +
-            fact('Next follow-up', '<span class="' + (d.late ? 'late' : '') + '">' + d.text + '</span>' + (c.followUp ? ' <span class="muted">(' + S.fmtDate(c.followUp) + ')</span>' : '')) +
+            fact(
+              'Next follow-up',
+              '<span class="' +
+                (d.late ? 'late' : '') +
+                '">' +
+                d.text +
+                '</span>' +
+                (c.followUp ? ' <span class="muted">(' + S.fmtDate(c.followUp) + ')</span>' : ''),
+            ) +
             fact('Notes', c.notes ? S.esc(c.notes) : '<span class="muted">No notes yet</span>') +
             '</dl>' +
             '<div class="actions"><button class="btn btn-ghost" id="edit" type="button">Edit contact</button>' +
@@ -93,11 +153,27 @@
             '<label for="a-text" style="position:absolute;left:-9999px">What happened</label>' +
             '<input class="form-input" id="a-text" type="text" placeholder="What happened? e.g. Confirmed Saturday at 9am" autocomplete="off">' +
             '<button class="btn btn-violet" id="log" type="button">Log activity</button></div>' +
-            '<ul class="feed">' + acts.map(function (a) {
-              return '<li><span><span class="tag tag-lead">' + S.esc(a.type) + '</span></span><div>' + S.esc(a.text) + '<time datetime="' + a.at + '">' + S.fmtStamp(a.at) + '</time></div></li>';
-            }).join('') + '</ul></section></div>';
+            '<ul class="feed">' +
+            acts
+              .map(function (a) {
+                return (
+                  '<li><span><span class="tag tag-lead">' +
+                  S.esc(a.type) +
+                  '</span></span><div>' +
+                  S.esc(a.text) +
+                  '<time datetime="' +
+                  a.at +
+                  '">' +
+                  S.fmtStamp(a.at) +
+                  '</time></div></li>'
+                );
+              })
+              .join('') +
+            '</ul></section></div>';
 
-          document.getElementById('edit').addEventListener('click', function () { S.openDialog(c, render); });
+          document.getElementById('edit').addEventListener('click', function () {
+            S.openDialog(c, render);
+          });
           document.getElementById('del').addEventListener('click', function () {
             if (confirm('Delete ' + S.fullName(c) + '? This can’t be undone.')) {
               S.remove(c.id);
@@ -107,14 +183,23 @@
           var text = document.getElementById('a-text');
           function log() {
             var t = text.value.trim();
-            if (!t) { text.focus(); return; }
-            c.activity = (c.activity || []).concat({ type: document.getElementById('a-type').value, text: t, at: new Date().toISOString() });
+            if (!t) {
+              text.focus();
+              return;
+            }
+            c.activity = (c.activity || []).concat({
+              type: document.getElementById('a-type').value,
+              text: t,
+              at: new Date().toISOString(),
+            });
             S.save(c);
             render();
             S.toast('Activity logged');
           }
           document.getElementById('log').addEventListener('click', log);
-          text.addEventListener('keydown', function (e) { if (e.key === 'Enter') log(); });
+          text.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') log();
+          });
         }
         render();
       })();
