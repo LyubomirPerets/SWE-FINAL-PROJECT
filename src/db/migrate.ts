@@ -1,11 +1,37 @@
 import { readdir, readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { config } from '../config.js';
 import { pool, closePool } from './pool.js';
 
 const dir = path.join(path.dirname(fileURLToPath(import.meta.url)), 'migrations');
 
+const LOCAL_HOSTS = new Set(['localhost', '127.0.0.1', '::1', '[::1]']);
+
+/**
+ * Throws unless `databaseUrl` points at this machine. resetDatabase() drops every table,
+ * so it must never run against the shared Supabase database, whichever .env line or
+ * missing TEST_DATABASE_URL sent it there.
+ */
+export function assertLocalDatabase(databaseUrl: string): void {
+  let host: string;
+  try {
+    host = new URL(databaseUrl).hostname;
+  } catch {
+    throw new Error('Refusing to reset the database: DATABASE_URL is not a valid URL.');
+  }
+  if (!LOCAL_HOSTS.has(host)) {
+    throw new Error(
+      `Refusing to reset the database at "${host}": reset drops every table, so it only ` +
+        'runs against a local database (localhost). For `npm test`, set TEST_DATABASE_URL ' +
+        'to your local crm_test database. For `npm run db:reset`, point DATABASE_URL at ' +
+        'local Docker.',
+    );
+  }
+}
+
 export async function resetDatabase(): Promise<void> {
+  assertLocalDatabase(config.DATABASE_URL);
   await pool.query('DROP SCHEMA public CASCADE; CREATE SCHEMA public;');
 }
 
