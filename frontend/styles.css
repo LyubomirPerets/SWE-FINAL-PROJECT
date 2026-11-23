@@ -439,12 +439,19 @@ mark {
   .signup-wrap {
     margin-top: 24px;
   }
+<<<<<<< HEAD
   .signup-card,
   .login-card {
     padding: 24px 18px;
   }
   .signup-perks,
   .login-perks {
+=======
+  .signup-card {
+    padding: 24px 18px;
+  }
+  .signup-perks {
+>>>>>>> origin
     grid-template-columns: 1fr;
     margin-top: 32px;
     margin-bottom: 40px;
@@ -452,21 +459,31 @@ mark {
   }
 }
 
+<<<<<<< HEAD
 /* signup & login pages */
 .page-signup,
 .page-login {
+=======
+/* signup page */
+.page-signup {
+>>>>>>> origin
   min-height: 100vh;
   display: flex;
   flex-direction: column;
 }
 
+<<<<<<< HEAD
 .signup-content,
 .login-content {
+=======
+.signup-content {
+>>>>>>> origin
   flex: 1;
   display: flex;
   flex-direction: column;
 }
 
+<<<<<<< HEAD
 .signup-hero,
 .login-hero {
   padding-bottom: 0;
@@ -474,6 +491,13 @@ mark {
 
 .signup-wrap,
 .login-wrap {
+=======
+.signup-hero {
+  padding-bottom: 0;
+}
+
+.signup-wrap {
+>>>>>>> origin
   max-width: 480px;
   margin: 32px auto 0;
   padding: 0 20px;
@@ -495,8 +519,12 @@ mark {
   user-select: none;
 }
 
+<<<<<<< HEAD
 .signup-card,
 .login-card {
+=======
+.signup-card {
+>>>>>>> origin
   background: var(--card);
   color: var(--card-ink);
   padding: 32px 32px 28px;
@@ -715,8 +743,12 @@ mark {
   text-decoration: underline;
 }
 
+<<<<<<< HEAD
 .signup-perks,
 .login-perks {
+=======
+.signup-perks {
+>>>>>>> origin
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 16px;
@@ -757,6 +789,7 @@ mark {
   line-height: 1.4;
 }
 
+<<<<<<< HEAD
 .form-label-row {
   display: flex;
   justify-content: space-between;
@@ -840,13 +873,20 @@ mark {
 
 .signup-success-view,
 .login-success-view {
+=======
+.signup-success-view {
+>>>>>>> origin
   text-align: center;
   padding: 24px 12px;
   display: none;
 }
 
+<<<<<<< HEAD
 .signup-success-view.visible,
 .login-success-view.visible {
+=======
+.signup-success-view.visible {
+>>>>>>> origin
   display: block;
 }
 
